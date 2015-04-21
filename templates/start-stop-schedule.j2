@@ -1,0 +1,7 @@
+SHELL="/bin/bash"
+PATH="/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin"
+CRON_TZ="{{ item.timezone | default('UTC') }}"
+HOME="{{ overseer_home }}"
+
+{{ item.start_cron_expression | trim }} overseer ansible-playbook -i '127.0.0.1,' ${HOME}/start-instances.yml -e "schedule_name='{{ item.schedule_name }}'"
+{{ item.stop_cron_expression | trim }} overseer ansible-playbook -i '127.0.0.1,' ${HOME}/stop-instances.yml -e "schedule_name='{{ item.schedule_name }}'"

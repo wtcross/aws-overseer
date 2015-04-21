@@ -1,0 +1,7 @@
+---
+overseer_home: /opt/overseer
+overseer_aws_region: "{{ lookup('env', 'OVERSEER_AWS_REGION') }}"
+overseer_aws_access_key: "{{ lookup('env', 'OVERSEER_AWS_ACCESS_KEY') }}"
+overseer_aws_secret_key: "{{ lookup('env', 'OVERSEER_AWS_SECRET_KEY') }}"
+
+overseer_start_stop_schedules: []

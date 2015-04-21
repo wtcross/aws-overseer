@@ -1,0 +1,32 @@
+---
+galaxy_info:
+  author: Tyler Cross
+
+  description: Scheduled starting and stopping of EC2 instances with cron jobs.
+
+  license: MIT
+
+  min_ansible_version: 1.2
+
+  platforms:
+    - name: Amazon
+      versions:
+        - all
+
+    - name: CentOS
+      versions:
+        - all
+
+    - name: Ubuntu
+      versions:
+        - all
+
+    - name: Debian
+      versions:
+        - all
+
+  categories:
+    - cloud
+    - 'cloud:ec2'
+
+dependencies: []
