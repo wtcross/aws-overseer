@@ -5,8 +5,9 @@ Scheduled starting and stopping of EC2 instances with cron jobs.
 If you are using this role then you are probably trying to save some money. Why leave EC2 instances running if they are only used during specific intervals and can be safely stopped? This role simply requires adding a couple tags to any instance that you want managed by a `start_stop_schedule`.
 
 The tags are:
-  - **`Overseer`**: the name of the overseer that manages this instance
-  - **`StartStopSchedule`**: the name of the schedule to use for this instance
+
+- **`Overseer`**: the name of the overseer that manages this instance
+- **`StartStopSchedule`**: the name of the schedule to use for this instance
 
 Instances are only stopped or started if a `start_stop_schedule` has been configured on the `overseer` host using this role. 
 
