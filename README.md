@@ -11,6 +11,33 @@ The tags are:
 
 Instances are only stopped or started if a `start_stop_schedule` has been configured on the `overseer` host using this role. 
 
+Example Playbook
+----------------
+
+```yaml
+  ---
+  - name: Configure all overseer hosts.
+    hosts: overseer
+    gather_facts: yes
+    sudo: yes
+
+    roles:
+      - role: aws-overseer
+        overseer_name: Development
+        overseer_aws_region: us-east-2
+        overseer_start_stop_schedules:
+          - schedule_name: raleigh-business-hours
+            start_cron_expression: "* 6 * * 1,2,3,4,5"
+            stop_cron_expression: "* 18 * * 1,2,3,4,5"
+            timezone: America/New_York
+          - schedule_name: sao-paulo-business-hours
+            start_cron_expression: "* 6 * * 1,2,3,4,5"
+            stop_cron_expression: "* 18 * * 1,2,3,4,5"
+            timezone: America/Sao_Paulo
+```
+
+**Note**: Current state only allows for one `aws-overseer` per host.
+
 Requirements
 ------------
 
@@ -39,8 +66,8 @@ Role Variables
 | property              | required / optional | default | description
 | ----------------------|---------------------|---------|---------------------------------------------------|
 | schedule_name         | required            |         | the name to give this schedule                    |
-| start_cron_expression | required            |         | a cron expression for the start instance job      |
-| stop_cron_expression  | required            |         | a cron expression for the stop instance job       |
+| start_cron_expression | required            |         | a [cron expression](http://en.wikipedia.org/wiki/Cron#CRON_expression) for the start instance job      |
+| stop_cron_expression  | required            |         | a [cron expression](http://en.wikipedia.org/wiki/Cron#CRON_expression) for the stop instance job       |
 | timezone              | optional            | UTC     | the timezone to use for the overseer cron table   |
 
 > Any `start_stop_schedule` jobs are removed if they are not in the configuration. This makes sure old `start_stop_schedules` aren't going to accumulate over time in `/etc/cron.d`
@@ -49,33 +76,6 @@ Dependencies
 ------------
 
 None
-
-Example Playbook
-----------------
-
-```yaml
-  ---
-  - name: Configure all overseer hosts.
-    hosts: overseer
-    gather_facts: yes
-    sudo: yes
-
-    roles:
-      - role: aws-overseer
-        overseer_name: Development
-        overseer_aws_region: us-east-2
-        overseer_start_stop_schedules:
-          - schedule_name: raleigh-business-hours
-            start_cron_expression: "* 6 * * 1,2,3,4,5"
-            stop_cron_expression: "* 18 * * 1,2,3,4,5"
-            timezone: America/New_York
-          - schedule_name: sao-paulo-business-hours
-            start_cron_expression: "* 6 * * 1,2,3,4,5"
-            stop_cron_expression: "* 18 * * 1,2,3,4,5"
-            timezone: America/Sao_Paulo
-```
-
-**Note**: Current state only allows for one `aws-overseer` per host.
 
 License
 -------
