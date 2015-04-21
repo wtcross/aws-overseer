@@ -11,6 +11,8 @@ The tags are:
 
 Instances are only stopped or started if a `start_stop_schedule` has been configured on the `overseer` host using this role. 
 
+> Tip: Create an IAM user just for `overseer` so that you can use [CloudTrail](http://aws.amazon.com/cloudtrail/) to view all start-stop history
+
 Example Playbook
 ----------------
 
