@@ -25,8 +25,6 @@ galaxy_info:
       versions:
         - all
 
-  categories:
-    - cloud
-    - 'cloud:ec2'
+  categories: [ 'cloud:ec2' ]
 
 dependencies: []
