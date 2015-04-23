@@ -1,0 +1,18 @@
+---
+- name: Ensure enforcement playbooks are in place for overseer.
+  template:
+    src: "../../templates/jobs/enforcement/{{ item }}.j2"
+    dest: "{{ overseer_playbooks }}/{{ item }}"
+    owner: overseer
+    group: overseer
+  with_items:
+    - enforce-check.yml
+    - enforce-stop.yml
+
+- name: "Ensure there is a crontab entry for enforcement checking, if enabled."
+  cron:
+    name: "overseer-{{ overseer_normalized_name }}-enforcement"
+    minute: "*/10"
+    user: overseer
+    job: "{{ overseer_bin }}/enforce-check '{{ overseer_vars }}/{{ overseer_normalized_name }}.yml'"
+    state: "{% if overseer_enforce %}present{% else %}absent{% endif %}"

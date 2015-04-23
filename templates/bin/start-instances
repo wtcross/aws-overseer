@@ -1,0 +1,16 @@
+#!/bin/bash -ev
+
+VARS_PATH="${1}"
+START_STOP_SCHEDULE="${2}"
+
+PATH="/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin"
+
+export AWS_ACCESS_KEY_ID="$(cat ${VARS_PATH} | shyaml get-value overseer_aws_access_key)"
+export AWS_SECRET_ACCESS_KEY="$(cat ${VARS_PATH} | shyaml get-value overseer_aws_secret_key)"
+export AWS_DEFAULT_REGION="$(cat ${VARS_PATH} | shyaml get-value overseer_aws_region)"
+
+ansible-playbook "{{ overseer_playbooks }}/start-instances.yml" \
+	-i "{{ overseer_inventory }}" \
+	-M "{{ overseer_library }}" \
+	-e "schedule_name='${START_STOP_SCHEDULE}'" \
+	-e "@${VARS_PATH}"

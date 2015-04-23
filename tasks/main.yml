@@ -1,4 +1,12 @@
 ---
+- set_fact:
+    overseer_normalized_name: "{{ overseer_name | regex_replace('[^-\\w]+', '-') | regex_replace('-{2,}', '-') | lower | trim }}"
+    overseer_inventory: "{{ overseer_home }}/inventory"
+    overseer_vars: "{{ overseer_home }}/vars"
+    overseer_library: "{{ overseer_home }}/library"
+    overseer_bin: "{{ overseer_home }}/bin"
+    overseer_playbooks: "{{ overseer_home }}/playbooks"
+
 - name: Ensure deb dependencies are installed.
   apt:
     name: "{{ item }}"
@@ -7,6 +15,7 @@
   with_items:
     - python-pip
     - python-dev
+    - at
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: Ensure yum dependencies are installed.
@@ -17,6 +26,7 @@
   with_items:
     - python-pip
     - python-devel
+    - at
   when: ansible_distribution == 'CentOS' or ansible_distribution == 'Amazon'
 
 - name: Ensure python dependencies are installed.
@@ -26,6 +36,7 @@
   with_items:
     - ansible
     - boto
+    - shyaml
 
 - name: Ensure the overseer group exists.
   group:
@@ -43,48 +54,62 @@
 
 - name: Ensure necessary directories for overseer are created.
   file:
-    path: "{{ overseer_home }}/{{ item }}"
-    state: directory
+    path: "{{ item }}"
     owner: overseer
     group: overseer
     recurse: yes
+    state: directory
   with_items:
-    - library
+    - "{{ overseer_inventory }}"
+    - "{{ overseer_vars }}"
+    - "{{ overseer_library }}"
+    - "{{ overseer_playbooks }}"
+    - "{{ overseer_bin }}"
 
-- name: Ensure start-stop-schedule playbooks are in place for overseer.
-  template:
-    src: "{{ item }}.j2"
-    dest: "{{ overseer_home }}/{{ item }}"
+- name: Ensure the EC2 dynamic inventory script is in place.
+  get_url:
+    url: https://raw.githubusercontent.com/ansible/ansible/devel/plugins/inventory/ec2.py
+    dest: "{{ overseer_inventory }}/ec2.py"
+    mode: ug+x
+    force: yes
+
+- name: Ensure the EC2 dynamic inventory module is correctly configured.
+  copy:
+    src: ec2.ini
+    dest: "{{ overseer_inventory }}/ec2.ini"
     owner: overseer
     group: overseer
-  with_items:
-    - start-instances.yml
-    - stop-instances.yml
+
+- name: Ensure there is a static inventory for local connections.
+  copy:
+    dest: "{{ overseer_inventory }}/local"
+    content: |
+      [localhost]
+      127.0.0.1 ansible_connection=local
 
 - name: Ensure the ec2 module will work with tags.
   get_url:
     url: https://raw.githubusercontent.com/wtcross/ansible-modules-core/ec2-start-stop-by-tag/cloud/amazon/ec2.py
-    dest: "{{ overseer_home }}/library/ec2.py"
+    dest: "{{ overseer_library }}/ec2.py"
     owner: overseer
     group: overseer
     force: yes
 
-- name: Ensure there is a crontab in /etc/cron.d for each start_stop_schedule
+- name: Ensure variables for this overseer are in place.
   template:
-    src: start-stop-schedule.j2
-    dest: "{{ '/etc/cron.d/overseer-' ~ overseer_name ~ '-start-stop-schedule-' ~ item.schedule_name | regex_replace('[\\']+', '') | regex_replace('[^-a-z0-9]+', '-') | regex_replace('-{2,}', '-') | lower | trim }}"
-  with_items: overseer_start_stop_schedules
+    src: overseer-vars.yml.j2
+    dest: "{{ overseer_vars }}/{{ overseer_normalized_name }}.yml"
 
-- name: Build a list of the managed crontabs for overseer.
-  shell: "echo -e \"{% for item in overseer_start_stop_schedules %}{{ '/etc/cron.d/overseer-' ~ overseer_name ~ '-start-stop-schedule-' ~ item.schedule_name | regex_replace('[\\']+', '') | regex_replace('[^-a-z0-9]+', '-') | regex_replace('-{2,}', '-') | lower | trim }}\n{% endfor %}\""
-  register: overseer_crontabs
+- name: Ensure overseer executables are in place.
+  template:
+    src: "bin/{{ item }}"
+    dest: "{{ overseer_bin }}/{{ item }}"
+    mode: "ug+rx,o-rwx"
+  with_items:
+    - enforce-check
+    - enforce-stop
+    - start-instances
+    - stop-instances
 
-- name: Get a list of crontabs in /etc/cron.d for overseer.
-  shell: "find /etc/cron.d -name overseer-*"
-  register: crontab_find
-
-- name: Ensure that overseer crontabs not in configuration are removed.
-  file:
-    path: "{{ item }}"
-    state: absent
-  with_items: "{{ crontab_find.stdout_lines | difference(overseer_crontabs.stdout_lines) }}"
+- include: jobs/start-stop-schedule.yml
+- include: jobs/enforcement.yml
