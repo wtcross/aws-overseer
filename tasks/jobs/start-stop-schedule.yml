@@ -1,0 +1,30 @@
+---
+- name: Ensure start-stop-schedule playbooks are in place for overseer.
+  template:
+    src: "../../templates/jobs/start-stop-schedule/{{ item }}.j2"
+    dest: "{{ overseer_playbooks }}/{{ item }}"
+    owner: overseer
+    group: overseer
+  with_items:
+    - start-instances.yml
+    - stop-instances.yml
+
+- name: Ensure there is a crontab in /etc/cron.d for each start_stop_schedule.
+  template:
+    src: ../../templates/jobs/start-stop-schedule/start-stop-schedule.crontab.j2
+    dest: "/etc/cron.d/overseer-{{ overseer_normalized_name }}-start-stop-schedule-{{ item.schedule_name | regex_replace('[^-\\w]+', '-') | regex_replace('-{2,}', '-') | lower | trim }}"
+  with_items: overseer_start_stop_schedules
+
+- name: Build a list of the managed start_stop_schedules for this overseer.
+  shell: "echo -e \"{% for item in overseer_start_stop_schedules %}/etc/cron.d/overseer-{{ overseer_normalized_name }}-start-stop-schedule-{{ item.schedule_name | regex_replace('[^-\\w]+', '-') | regex_replace('-{2,}', '-') | lower | trim }}\n{% endfor %}\""
+  register: overseer_crontabs
+
+- name: Get a list of all start_stop_schedule crontabs in /etc/cron.d for this overseer.
+  shell: "find /etc/cron.d -regextype sed -regex \"/etc/cron.d/overseer-{{ overseer_normalized_name }}-start-stop-schedule-.*\""
+  register: crontab_find
+
+- name: Ensure that start_stop_schedule crontabs not in configuration for this overseer are removed.
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items: "{{ crontab_find.stdout_lines | difference(overseer_crontabs.stdout_lines) }}"

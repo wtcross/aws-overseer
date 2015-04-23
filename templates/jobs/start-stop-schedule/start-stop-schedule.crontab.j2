@@ -1,0 +1,8 @@
+SHELL="/bin/bash"
+PATH="/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin"
+CRON_TZ="{{ item.timezone | default('UTC') }}"
+VARS_PATH="{{ overseer_vars }}/{{ overseer_normalized_name }}.yml"
+START_STOP_SCHEDULE="{{ item.schedule_name }}"
+
+{{ item.start_cron_expression | trim }} overseer bash {{ overseer_bin }}/start-instances "${VARS_PATH}" "${START_STOP_SCHEDULE}"
+{{ item.stop_cron_expression | trim }} overseer bash {{ overseer_bin }}/stop-instances "${VARS_PATH}" "${START_STOP_SCHEDULE}"
