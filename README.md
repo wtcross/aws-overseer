@@ -2,7 +2,7 @@ aws-overseer
 ============
 Scheduled starting and stopping of EC2 instances with cron jobs.
 
-If you are looking into this role then you might be trying to save some money by stopping non-critical EC2 instances during off hours. Why leave EC2 instances running if they are only used during specific intervals and can be safely stopped? This role simply requires adding a couple tags to any instance that you want managed by a `start_stop_schedule`. It is also an experiment of using linux tools like `ansible`, `cron` and `at` for all functionality. There are some weird templated-out ansible playbooks if you examine further, but they work well.
+If you are looking into this role then you might be trying to save some money by stopping non-critical EC2 instances during off hours. Why leave EC2 instances running if they are only used during specific time intervals and can be safely stopped? This role simply requires adding a couple tags to any instance that you want managed by a `start_stop_schedule`. It is also an experiment of using linux tools like `ansible`, `cron` and `at` for all functionality. There are some weird templated-out ansible playbooks if you examine further, but they work well.
 
 The tags are:
 
@@ -41,7 +41,6 @@ Example Playbook
             timezone: America/Sao_Paulo
 
       - role: aws-overseer
-        overseer_name: Development
         overseer_name: us-west-2-dev
         overseer_aws_region: us-west-2
         overseer_start_stop_schedules:
