@@ -57,7 +57,7 @@ In this example the `us-east-1-dev` overseer will start and stop instances using
 
 The `us-east-1-dev` overseer defaults to no enforcement, so instances that aren't tagged with an `Overseer` tag will keep on going, with no stops. The `us-west-2-dev` overseer will start and stop instances using one schedule:
 
-- `san-francisco-business-hours`: starts instances every day of the week at 4 AM and stops them every day at 8 PM *<sup>where is the work-life balance</sup>*
+- `san-francisco-business-hours`: starts instances every day of the week at 4 AM and stops them every day at 8 PM
 
 ...it does have enforcement turned on. Instances that don't have the `Overseer` tag will simply be stopped within the first billable hour they are started.
 
